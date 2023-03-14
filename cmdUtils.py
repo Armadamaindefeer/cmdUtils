@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-#v0.9.1[pre-released]
+#v1.0.1[pre-released]
 #CmdUtils is a small terminal library for python 3.8 or newer
 #Copyright (C) 2023  Simon Poulet-Alligand | Arma_mainfeer
 #
@@ -24,7 +24,7 @@ import datetime
 import time
 from typing import Callable , Any, Union
 
-from .readchar import readchar as getch, readkey as wgetch, key
+from readchar import readchar as getch, readkey as wgetch, key
 
 from command import Command
 from forbidden_key import forbidden_key
