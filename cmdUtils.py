@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
-#
-#v1.0.1[pre-released]
 #CmdUtils is a small terminal library for python 3.8 or newer
 #Copyright (C) 2023  Simon Poulet-Alligand | Arma_mainfeer
 #
@@ -22,12 +18,12 @@
 
 import datetime
 import time
-from typing import Callable , Any, Union
+import typing
 
-from readchar import readchar as getch, readkey as wgetch, key
+from .readchar import readchar as getch, readkey as wgetch, key
 
-from command import Command
-from forbidden_key import forbidden_key
+from .command import Command
+from .forbidden_key import forbidden_key
 
 #>>-----------Constants-------------<<
 
@@ -50,8 +46,8 @@ INTERNAL_DEBUG = True
 
 def validate(message : str) -> bool:
 	log("WARN", message, "MAIN", color=WARN_COLOR,pend="" )
-	answer = input(' [Y/n]\n')
-	return answer == 'Y' or answer == 'y' or answer == 'o' or answer == 'O' or answer == ""
+	answer = input(' [Y/n] : ').casefold()
+	return answer == 'Y'.casefold() or answer == 'O' or answer == ""
 
 def log(level : str, content : str, source : str,color : str ="",pend : str ='\n') -> None:
 	now = datetime.datetime.now()
@@ -62,20 +58,20 @@ def log(level : str, content : str, source : str,color : str ="",pend : str ='\n
 	formatted_message = template_format.format(color=color,hour=hour,minute=minute,second=second,level=level,content=content,source=source)
 	print(formatted_message,end=pend)
 
-def debug(message : Any, source : str="MAIN") -> None:
+def debug(message : typing.Any, source : str="MAIN") -> None:
 	if GLOBAL_DEBUG:
 		log("DEBUG", message, source, color=DEBUG_COLOR)
 
-def info(message : Any, source : str="MAIN") -> None:
+def info(message : typing.Any, source : str="MAIN") -> None:
 	log("INFO", message, source, color=INFO_COLOR)
 
-def warn(message : Any, source : str="MAIN") -> None:
+def warn(message : typing.Any, source : str="MAIN") -> None:
 	log("WARN", message, source, color=WARN_COLOR)
 
-def error(message : Any, source : str="MAIN") -> None:
+def error(message : typing.Any, source : str="MAIN") -> None:
 	log("ERROR", message, source, color=ERROR_COLOR)
 
-def fatal(message : Any, source : str="MAIN") -> None:
+def fatal(message : typing.Any, source : str="MAIN") -> None:
 	log("FATAL", message, source, color=FATAL_COLOR)
 
 def toggleGlobalDebug():
@@ -89,7 +85,7 @@ def formatter(unformatted_str: str) -> str:
 #>>-----------HANDLER------------------<<
 
 class CmdHandler:
-	def __init__(self, cmd_list: Union[list,set], source: str, debug: bool = False, command_char: str = "" ) -> None:
+	def __init__(self, cmd_list: set, source: str, debug: bool = False, command_char: str = "" ) -> None:
 		self.cmd_history = [""]
 		self.cmd_latest_index = 0
 		self.source = source
@@ -109,23 +105,27 @@ class CmdHandler:
 		if INTERNAL_DEBUG:
 			log("DEBUG",message,self.source, color=DEBUG_COLOR)
 
-	def info(self, message: Any) -> None:
+	def info(self, message: typing.Any) -> None:
 		info(message, self.source)
 
-	def warn(self, message: Any) -> None:
+	def warn(self, message: typing.Any) -> None:
 		warn(message, self.source)
 
-	def error(self, message: Any) -> None:
+	def error(self, message: typing.Any) -> None:
 		error(message, self.source)
 
-	def fatal(self, message: Any) -> None:
+	def fatal(self, message: typing.Any) -> None:
 		fatal(message, self.source)
 
-	def add_command(self,command : Command, name:str = ""):
+	def add_multiple_command(self,commands : set | list | tuple):
+		for command in commands:
+			self.add_command(command)
+
+	def add_command(self,command : Command):
 		if type(command) == Command: 
 			self.cmd_list[command.call_name] = command
 		else:
-			self.warn(f"Unrecognized commands format for{command} of type {type(command)}")
+			self.warn(f"Unrecognized commands format for {command} of type {type(command)}")
 
 	def custom_input(self):
 		#TODO implement cursor
@@ -241,7 +241,7 @@ class CmdHandler:
 
 	#Command_unit -> [{"isCommand" : value},[command_name/parameter, parameter ...]]
 	#Commands_list -> [Command_unit,Command_unit,...]
-	def handle_input(self, text_input: Union[str,None]=None):
+	def handle_input(self, text_input: str | None = None):
 		input_user_ = self.custom_input() if text_input == None else text_input
 		input_metadata, input_parameter = self.parser(input_user_)
 		command_name = input_parameter[0]

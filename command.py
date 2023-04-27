@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
-#
-#v1.0.1[pre-released]
 #CmdUtils is a small terminal library for python 3.8 or newer
 #Copyright (C) 2023  Simon Poulet-Alligand | Arma_mainfeer
 #
@@ -18,10 +14,11 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Callable , Any
+from typing import Callable
+import typing
 
 class Command:
-	def __init__( self, name: str, function: Callable[...,Any], usage: str, needQuantity: int =-1, maxQuantity: int =-1, minQuantity: int =-1, argument=None) -> None:
+	def __init__( self, name: str, function: Callable[...,typing.Any], usage: str, needQuantity: int =-1, maxQuantity: int =-1, minQuantity: int =-1, argument=None) -> None:
 		self.call_name = name
 		self.function = function
 		self.usage = usage
@@ -30,8 +27,5 @@ class Command:
 		self.minQuantity = minQuantity # False : quantity can be anywhere between 0 and MaxQuantity | 1 -> inf : min number of arg that the func can handle
 		self.argument = argument
 
-	def __call__(self, *args , **kwds):
-		return self.function(*args,**kwds)
-
-	def run_func(self,*args,**kwargs):
+	def __call__(self, *args , **kwargs):
 		return self.function(*args,**kwargs)
