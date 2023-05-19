@@ -20,10 +20,9 @@ import datetime
 import time
 import typing
 
-from .readchar import readchar as getch, readkey as wgetch, key
-
 from .command import Command
-from .forbidden_key import forbidden_key
+from .key import __key as key
+from .__keyboardHandler import keyboardHandler
 
 #>>-----------Constants-------------<<
 
@@ -94,6 +93,7 @@ class CmdHandler:
 		self.command_char = command_char
 		self.cmd_list = {}
 		self.__default_callback = Command("print", print, "lorem ipsum", minQuantity=1)
+		self.kb = keyboardHandler()
 		for command in cmd_list:
 			self.add_command(command)
 
@@ -122,76 +122,51 @@ class CmdHandler:
 			self.add_command(command)
 
 	def add_command(self,command : Command):
-		if type(command) == Command: 
+		#Remove runtime type check, done at compile time
+		if type(command) == Command:
 			self.cmd_list[command.call_name] = command
 		else:
 			self.warn(f"Unrecognized commands format for {command} of type {type(command)}")
 
 	def custom_input(self):
-		#TODO implement cursor
-		#TODO lire stdin uniquement changement/toucher presser
 		__char_buffer = self.cmd_history[-1]
 		__current_index = len(self.cmd_history) -1
+		print(f"\r$> {__char_buffer}",end=" \x1b[2K")
 		while True:
-			print(f"\r$> {__char_buffer}",end=" \x1b[2K")
-			__temp = wgetch()
+			if self.kb.kbhit():
+				__temp = self.kb.wgetch()
+				if __temp in key.forbidden_key:
+					continue
+				match __temp:
+					case key.BACKSPACE:
+						__char_buffer = __char_buffer[:-1]
+					case key.ENTER :
+						if __char_buffer.strip() != "":
+							self.cmd_history[-1] = __char_buffer
+							self.cmd_history += [""]
+							__current_index = len(self.cmd_history)-1
+							__output__ = __char_buffer
+							__char_buffer = ""
+							return __output__
+#Remplacer debug key par auto complétion | Actuellement désactiver via forbidden key
+					case key.TAB:
+						self.info(__current_index)
+						self.info(self.cmd_history)
 
-			#Skip des caractère pouvant broke le programme
-			if __temp in forbidden_key:
-				pass
-
-			#Suppression du caractère sur la gauche
-			elif __temp == key.BACKSPACE:
-				__char_buffer = __char_buffer[:-1]
-
-			#Validation de la commande
-			elif __temp == key.ENTER:
-				if __char_buffer.strip() != "":
-					self.cmd_history[-1] = __char_buffer
-					self.cmd_history += [""]
-					__current_index = len(self.cmd_history)-1
-					__output__ = __char_buffer
-					__char_buffer = ""
-					return __output__
-				else:
-					pass
-
-			#Debug controller (disabled via forbidden key)
-			#Sera remplacer par l'autocomplétion
-			elif __temp == key.TAB:
-				self.info(__current_index)
-				self.info(self.cmd_history)
-
-			#Action de remonter l'historique
-			elif __temp == key.UP:
-				if __current_index == 0:
-					pass
-				elif __current_index == len(self.cmd_history)-1:
-					self.cmd_history[-1] =  __char_buffer
-					__current_index -= 1
-					__char_buffer = self.cmd_history[__current_index]
-				else:
-					__current_index -= 1
-					__char_buffer = self.cmd_history[__current_index]
-
-			#Action de descendre l'historique
-			elif __temp == key.DOWN:
-				if __current_index == len(self.cmd_history)-1:
-					pass
-				else:
-					__current_index += 1
-					__char_buffer = self.cmd_history[__current_index]
-				pass
-
-			#Skip les champs vides -- checker l'utilité de la commande
-			#elif __temp == 0:
-			#	pass
-
-			elif __temp == key.CTRL_C:
-				raise KeyboardInterrupt
-
-			else:
-				__char_buffer += __temp
+					case key.UP:
+						if __current_index == len(self.cmd_history)-1:
+							self.cmd_history[-1] =  __char_buffer
+						__current_index -= 1 if __current_index != 0 else 0
+						__char_buffer = self.cmd_history[__current_index]
+					case key.DOWN:
+						if __current_index != len(self.cmd_history)-1:
+							__current_index += 1
+							__char_buffer = self.cmd_history[__current_index]
+					case key.CTRL_C:
+						raise KeyboardInterrupt
+					case _:
+						__char_buffer += __temp
+				print(f"\r$> {__char_buffer}",end=" \x1b[2K")
 
 	def parser(self, _to_parse: str):
 		input_metadata = {"isCommand" : False}
@@ -199,7 +174,7 @@ class CmdHandler:
 		if _to_parse.startswith(self.command_char):
 			input_metadata["isCommand"] = True
 			_to_parse = _to_parse.replace(self.command_char,"",1)
-		
+
 		__input_parameter = []
 		_bracket = False
 		_skip_next = False

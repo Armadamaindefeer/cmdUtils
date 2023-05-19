@@ -1,5 +1,4 @@
-from ._base_key import *
-
+from .__key_common import *
 
 # common
 BACKSPACE = "\x7f"
