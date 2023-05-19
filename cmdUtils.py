@@ -17,7 +17,6 @@
 #>>-----------Import----------------<<
 
 import datetime
-import time
 import typing
 
 from .command import Command
@@ -152,7 +151,6 @@ class CmdHandler:
 					case key.TAB:
 						self.info(__current_index)
 						self.info(self.cmd_history)
-
 					case key.UP:
 						if __current_index == len(self.cmd_history)-1:
 							self.cmd_history[-1] =  __char_buffer
