@@ -205,8 +205,6 @@ class CmdHandler:
 				self.warn(f"Not enough parameter for function : {commandsObject.call_name}")
 				return False
 		elif len(parameter_input) != commandsObject.needQuantity:
-			print(parameter_input)
-			print(len(parameter_input))
 			self.warn(f"Incorrect input quantity for function : {commandsObject.call_name} ")
 			return False
 		return True
@@ -223,7 +221,7 @@ class CmdHandler:
 			print("\r")
 			return
 
-		elif input_metadata["isCommand"] == False and self.command_char == "":
+		elif input_metadata["isCommand"] == False and self.command_char != "":
 			self._internal_debug(f"passing args to defaut callback with input :{input_parameter}")
 			self.__default_callback(*input_parameter)
 			return
