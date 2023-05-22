@@ -90,6 +90,7 @@ class CmdHandler:
 		self.format = ""
 		self.isDebug = debug
 		self.command_char = command_char
+		self.command_char_mode = True if command_char != "" else False
 		self.cmd_list = {}
 		self.__default_callback = Command("print", print, "lorem ipsum", minQuantity=1)
 		self.kb = keyboardHandler()
@@ -221,7 +222,7 @@ class CmdHandler:
 			print("\r")
 			return
 
-		elif input_metadata["isCommand"] == False and self.command_char != "":
+		elif input_metadata["isCommand"] == False and self.command_char_mode:
 			self._internal_debug(f"passing args to defaut callback with input :{input_parameter}")
 			self.__default_callback(*input_parameter)
 			return
