@@ -7,8 +7,8 @@ else:
 	from .__key_posix import *
 
 
+#List of key that can broke parser or display
 forbidden_key = {
-
 # common
 CR,
 ESC,

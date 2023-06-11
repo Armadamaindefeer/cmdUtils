@@ -36,8 +36,7 @@ class keyboardHandler:
 
 
 	def getch(self):
-		''' Returns a keyboard character after kbhit() has been called.
-			Should not be called in the same program as getarrow().
+		''' return lastest stdin char
 		'''
 		if os.name == 'nt':
 			return msvcrt.getch().decode('utf-8')
@@ -47,6 +46,8 @@ class keyboardHandler:
 			return __temp
 
 	def b_wgetch(self):
+		''' return lastest stdin utf-8 key (unused)
+		'''
 		if os.name == "nt":
 			return msvcrt.getwch().decode('utf-8')
 		else:
@@ -63,6 +64,8 @@ class keyboardHandler:
 			return wide_char
 
 	def wgetch(self):
+		''' return lastest stdin utf-8 key
+		'''		
 		if os.name == "nt":
 			return msvcrt.getwch.decode('utf-8')
 		else:
@@ -87,6 +90,8 @@ class keyboardHandler:
 			return wide_char
 
 	def getche(self):
+		''' take latest inputed char, print it then return it
+		'''		
 		if os.name == "nt":
 			return msvcrt.getche().decode("utf-8")
 		else:
@@ -95,6 +100,8 @@ class keyboardHandler:
 			return char
 
 	def wgetche(self):
+		''' take latest inputed utf-8 key, print it then return it
+		'''	
 		if os.name == "nt":
 			return msvcrt.getwche().decode("utf-8")
 		else:
@@ -108,7 +115,7 @@ class keyboardHandler:
 		if os.name == 'nt':
 			return msvcrt.kbhit()
 		else:
-			dr,dw,de = select([sys.stdin], [], [], 0)
+			dr,_,_ = select([sys.stdin], [], [], 0)
 			return dr != []
 
 	def __del__(self):
