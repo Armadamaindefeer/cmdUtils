@@ -1,5 +1,10 @@
 import os
 
+# Thanks for Michel Blancard for the source used here
+# You can find original code by following this link https://gist.github.com/michelbl/efda48b19d3e587685e3441a74457024
+# 
+
+
 # Windows
 if os.name == 'nt':
     import msvcrt
@@ -46,7 +51,7 @@ class keyboardHandler:
 			return __temp
 
 	def b_wgetch(self):
-		''' return lastest stdin utf-8 key (unused)
+		''' return lastest stdin utf-8 key (Not working)
 		'''
 		if os.name == "nt":
 			return msvcrt.getwch().decode('utf-8')
@@ -69,6 +74,17 @@ class keyboardHandler:
 		if os.name == "nt":
 			return msvcrt.getwch.decode('utf-8')
 		else:
+
+			"""
+			#Probable remplacement de l'algorithm sous le doc
+			char_test = ["\x1B","\x4F\x5B","\x31\x32\x33\x35\x36","\x30\x31\x33\x34\x35\x37\x38\x39"]
+			wide_char_bis = ""
+			for i in range(len(char_test)):
+				wide_char_bis += self.getch()
+				if wide_char_bis[i] != char_test[i]:
+					return wide_char_bis
+			"""
+
 			wide_char = self.getch()
 
 			if wide_char[0] != "\x1B":
