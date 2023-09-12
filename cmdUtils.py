@@ -1,5 +1,5 @@
 #CmdUtils is a small terminal library for python 3.8 or newer
-#Copyright (C) 2023  Simon Poulet-Alligand | Arma_mainfeer
+#Copyright (C) 2022-2023  Simon Poulet-Alligand | Arma_mainfeer
 #
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
