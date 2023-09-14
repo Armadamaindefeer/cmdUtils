@@ -42,10 +42,45 @@ INTERNAL_DEBUG = True
 
 #>>-----------Utils------------------<<
 
-def validate(message : str) -> bool:
-	log("WARN", message, "MAIN", color=WARN_COLOR,pend="" )
-	answer = input(' [Y/n] : ').casefold()
-	return answer == 'Y'.casefold() or answer == 'O' or answer == ""
+def validate(message : str):
+	return dialogue(message,type="validate")
+
+def dialogue(message, source="MAIN",type="interrupt", choice_list=[]):
+	"""type : str -> le type de dialogue :
+							- "validate" (Oui/Non)
+							- "choice" (1-9)
+							- "input" (Any)
+							- "interrupt" (Press Enter to continue) Ne marche pas en multithread/process
+		choice : list[str] ->	les message afficher en face de chaque choix (si type = choice)
+
+		Retourne la valeur du choix effectuer : 
+					- 0(Non) ou 1(Oui) dans le cas du type validate
+					- une valeur entière entre 0 et infini correspond au choix de l'utilisateur
+					- 0 dans le cas du type interrupt		
+	"""
+	answer = 0
+	log("WARN", message, source, color=WARN_COLOR,pend="")
+	if type== "interrypt":
+		keyboardHandler.getch()
+		return
+	elif type=="validate":
+		answer = keyboardHandler.term_pause(input,' [Y/n] : ').casefold()
+		return int(answer == 'Y'.casefold() or answer == 'O'.casefold() or answer == "")
+	elif type=="input":
+		return keyboardHandler.term_pause(input)
+	elif type=="choice":
+		print(f"[1/{len(choice_list)}] : ")
+		for choice in range(len(choice_list)):
+			print(f"[{choice}] - {choice_list[choice]}",end="")
+		try:
+			answer = int(keyboardHandler.term_pause(input))
+			if answer > len(choice_list):
+				raise ValueError
+		except ValueError:
+			log("ERROR","Invalid input....retrying",source,color=ERROR_COLOR)
+			return dialogue(message,source,type,choice_list)
+		return answer -1 
+
 
 def log(level : str, content : str, source : str,color : str ="",pend : str ='\n') -> None:
 	now = datetime.datetime.now()
