@@ -1,5 +1,4 @@
-from ._base_key import *
-
+from .__key_common import *
 
 # common
 BACKSPACE = "\x7f"
@@ -12,7 +11,7 @@ RIGHT = "\x1b\x5b\x43"
 
 # navigation keys
 INSERT = "\x1b\x5b\x32\x7e"
-SUPR = "\x1b\x5b\x33\x7e"
+SUPPR = "\x1b\x5b\x33\x7e"
 HOME = "\x1b\x5b\x48"
 END = "\x1b\x5b\x46"
 PAGE_UP = "\x1b\x5b\x35\x7e"
@@ -47,4 +46,4 @@ CTRL_ALT_A = "\x1b\x01"
 
 # aliases
 ENTER = LF
-DELETE = SUPR
+DELETE = SUPPR

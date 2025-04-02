@@ -1,4 +1,3 @@
-# common
 LF = "\x0a"
 CR = "\x0d"
 SPACE = "\x20"

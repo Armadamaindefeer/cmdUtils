@@ -1,14 +1,4 @@
-from ._base_key import *
-
-
-# Windows uses scan codes for extended characters. This dictionary
-# translates the second half of the scan codes of special Keys
-# into the corresponding variable used by readchar.
-#
-# for windows scan codes see:
-#   https://msdn.microsoft.com/en-us/library/aa299374
-#      or
-#   https://www.freepascal.org/docs-html/rtl/keyboard/kbdscancode.html
+from .__key_common import *
 
 # common
 BACKSPACE = "\x08"
@@ -21,7 +11,7 @@ RIGHT = "\x00\x4d"
 
 # navigation keys
 INSERT = "\x00\x52"
-SUPR = "\x00\x53"
+SUPPR = "\x00\x53"
 HOME = "\x00\x47"
 END = "\x00\x4f"
 PAGE_UP = "\x00\x49"
@@ -51,7 +41,6 @@ ENTER_2 = "\x00\x1c"
 # CTRL_ALT_SUPR,
 # CTRL-F1
 
-
 # aliases
-ENTER = CR
-DELETE = SUPR
+ENTER = "\n"
+DELETE = SUPPR
