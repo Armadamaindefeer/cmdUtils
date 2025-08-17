@@ -3,6 +3,8 @@ import os
 
 if os.name == 'nt':
 	from .__key_ms import *
+	CR = ""
+	ENTER = "\r"
 else:
 	from .__key_posix import *
 

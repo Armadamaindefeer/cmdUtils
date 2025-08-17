@@ -87,7 +87,11 @@ class keyboardHandler:
 		''' return lastest stdin utf-8 key
 		'''	
 		if os.name == "nt":
-			return msvcrt.getwch()
+			keycode = msvcrt.getwch()
+			if keycode in "\xe0\x00":
+				keycode = "\x00"
+				keycode += msvcrt.getwch()
+			return keycode
 		else:
 
 			"""
@@ -136,7 +140,11 @@ class keyboardHandler:
 		''' take latest inputed utf-8 key, print it then return it
 		'''	
 		if os.name == "nt":
-			return msvcrt.getwche()
+			keycode = msvcrt.getwche()
+			if keycode in "\xe0\x00":
+				keycode = "\x00"
+				keycode += msvcrt.getwche()
+			return keycode
 		else:
 			wchar = cls.wgetch()
 			print(wchar,end='')
