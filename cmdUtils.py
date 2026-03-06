@@ -21,7 +21,7 @@ import datetime
 import typing
 import time
 
-from .command import Command, InputParameter ,globalCommands
+from .command import CommandBase, Command,CommandError,Shell
 from .key import __key as key
 from .__keyboardHandler import keyboardHandler
 
@@ -129,11 +129,15 @@ class CmdHandler:
 		self.isDebug = debug
 		self.command_char = command_char
 		self.command_char_mode = True if command_char != "" else False
-		self.cmd_list:dict[str,Command] = dict()
-		self.__default_callback = Command("print", print, "print TEXT ...","lorem ipsum", minQuantity=1)
+		self.cmd_list:dict[str,CommandBase] = dict()
+		self.__default_callback = Command(
+				"echo", 
+				lambda x: print(*x.input),
+				"print TEXT ...",
+				"lorem ipsum",
+				mandatory=1
+			)
 		self.kb = keyboardHandler()
-		for command in globalCommands:
-			self.add_command(command)
 
 	def debug(self, message: str) -> None:
 		if self.isDebug or GLOBAL_DEBUG:
@@ -160,11 +164,7 @@ class CmdHandler:
 			self.add_command(command)
 
 	def add_command(self,command : Command):
-		#Remove runtime type check, done at compile time
-		if type(command) == Command:
-			self.cmd_list[command.call_name] = command
-		else:
-			self.warn(f"Unrecognized commands format for {command} of type {type(command)}")
+		self.cmd_list[command.syntax] = command
 
 	def getAvailableToken(self,values:list[str],buffer:str):
 		token_set = {token[:len(buffer)+1] for token in values if token.startswith(buffer)}
@@ -225,7 +225,6 @@ class CmdHandler:
 							__output__ = __char_buffer
 							__char_buffer = ""
 							return __output__
-					#Remplacer debug key par auto complétion
 					case key.F2:
 						if INTERNAL_DEBUG:
 							self._internal_debug(f"Input log current index : {__current_index}/{len(self.cmd_history)-1}")
@@ -234,17 +233,18 @@ class CmdHandler:
 							self._internal_debug(f"Char buffer size : {len(__char_buffer)}")
 							self._internal_debug(f"Cursor retreat : {__cursor_retreat}")
 					case key.TAB:
-						available_command = list(self.cmd_list.keys())
-						token_metadata,token = self.parser(__char_buffer)
-						self._internal_debug(f"Tokens : {token}")
+						# available_command = list(self.cmd_list.keys())
+						# token_metadata,token = self.parser(__char_buffer)
+						# self._internal_debug(f"Tokens : {token}")
 
-						if token_metadata["isCommand"] and len(token) > 0:
-							if token[0] in available_command:
-								__char_buffer = self.cmd_list[token[0]].auto_completion(token)
-							elif len(token) == 2 and not (token[0] == "" or token[0] == " ") and not (token[1] == " "):
-								token[0] = self.autoComplete(token[0],available_command)
-								__char_buffer = token[0]
-
+						# if token_metadata["isCommand"] and len(token) > 0:
+						# 	if token[0] in available_command:
+						# 		completed_token = self.cmd_list[token[0]].autoComplete(token)
+						# 		__char_buffer = " ".join(completed_token).strip()
+						# 	elif len(token) == 2 and not (token[0] == "" or token[0] == " ") and not (token[1] == " "):
+						# 		token[0] = self.autoComplete(token[0],available_command)
+						# 		__char_buffer = token[0]
+						...
 					case key.UP:
 						if __current_index == len(self.cmd_history)-1:
 							self.cmd_history[-1] =  __char_buffer
@@ -265,7 +265,7 @@ class CmdHandler:
 						if __cursor_retreat > 1:
 							__cursor_retreat -= 1
 					case key.CTRL_C:
-						self._internal_debug(f"Catch and Rise again KeyboardInterrupt")
+						self._internal_debug(f"Catch and Raise again KeyboardInterrupt")
 						raise KeyboardInterrupt
 					case _:
 						FirstHalf = __char_buffer[:len(__char_buffer) -__cursor_retreat + 1]
@@ -322,22 +322,7 @@ class CmdHandler:
 				else:
 					endSpacing += " "
 
-		__input_parameter += [endSpacing]
 		return (input_metadata, __input_parameter)
-
-	def check_func_input(self, parameter_input: list[str], commandsObject: Command) -> bool:
-		if commandsObject.needQuantity <= -1:
-			if commandsObject.maxQuantity >= 0 and len(parameter_input) > commandsObject.maxQuantity:
-				self.warn(f"Too many parameter for function : {commandsObject.call_name}")
-				return False
-			elif commandsObject.minQuantity >= 0 and len(parameter_input) < commandsObject.minQuantity:
-				self.warn(f"Not enough parameter for function : {commandsObject.call_name}")
-				return False
-		elif len(parameter_input) != commandsObject.needQuantity:
-			self.warn(f"Incorrect input quantity for function : {commandsObject.call_name} ")
-			return False
-		return True
-
 
 	#Command_unit -> [{"isCommand" : value},[command_name/parameter, parameter ...]]
 	#Commands_list -> [Command_unit,Command_unit,...]
@@ -350,19 +335,28 @@ class CmdHandler:
 			print("\r",end="")
 			return
 
-		elif input_metadata["isCommand"] == False and self.command_char_mode:
+		if input_metadata["isCommand"] == False and self.command_char_mode:
 			self._internal_debug(f"passing args to defaut callback with input :{input_parameter}")
-			self.__default_callback(InputParameter(dict(),[*input_parameter]))
+			self.__default_callback(Shell(input_parameter))
 			return
 
-		elif not command_name in self.cmd_list:
+		if not command_name in self.cmd_list:
 			self.warn(f"Unrecognized commands : {command_name}")
 			return
 
-		elif not self.check_func_input(input_parameter[1::][:-1], self.cmd_list[command_name]):
-			self.warn(self.cmd_list[command_name].usage)
-			return
-
-		else:
-			self._internal_debug(f"Launching command \'{command_name}\' with parameters : {input_parameter[1::][:-1]}")
-			self.cmd_list[command_name](InputParameter(dict(),[*input_parameter[1::][:-1]]))
+		command = self.cmd_list[command_name]
+		self._internal_debug(f"Launching command \'{command_name}\' with parameters : {input_parameter[1:]}")
+		
+		if (res := command(Shell(input_parameter[1:]))) != 0:
+			error_message = ""
+			match res:
+				case CommandError.PARAMETER_NOT_ENOUGH:
+					error_message = "Not enough parameter"
+				case CommandError.PARAMETER_TOO_MANY:
+					error_message = "Too many parameters"
+				case CommandError.PARAMETER_UNKNOWN:
+					error_message = "Unrecognised parameter"
+				case _ :
+					error_message = "Unexpected error"
+			self.warn(error_message + f" for command '{command_name}'")
+			print(command.usage)
