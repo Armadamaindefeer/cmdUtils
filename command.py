@@ -66,18 +66,30 @@ class CommandDir(CommandBase):
 			command_dir:dict[str,CommandBase],
 			usage:str = "", 
 			desc :str="",
-			autoComplete:autoComplete_type = basicAutoComplete
+			autoComplete:autoComplete_type = basicAutoComplete,
+			defaultHandler:Command|None = None
 		) -> None:
 		super().__init__(syntax,usage,desc,autoComplete) # Change optional and mandatory count
 		self.commands = command_dir
+		if defaultHandler is not None:
+			self.defaultHandler:Command = defaultHandler
+			self.hasDefault = True
+		else:
+			self.hasDefault = False
 
 	def __call__(self, shell: Shell) -> int:
 		if len(shell) == 0:
-			return CommandError.PARAMETER_NOT_ENOUGH
+			if not self.hasDefault:
+				return CommandError.PARAMETER_NOT_ENOUGH
+			else:
+				return self.defaultHandler(shell)
 
 		if shell[0] not in self.commands:
-			return CommandError.PARAMETER_UNKNOWN
-		
+			if not self.hasDefault:
+				return CommandError.PARAMETER_UNKNOWN
+			else:
+				return self.defaultHandler(shell)
+
 		return	self.commands[shell[0]](Shell(shell.input[1:]))
 
 globalCommands:list[Command] = list()
