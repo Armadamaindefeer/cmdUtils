@@ -163,7 +163,7 @@ class CmdHandler:
 		for command in commands:
 			self.add_command(command)
 
-	def add_command(self,command : Command):
+	def add_command(self,command : CommandBase):
 		self.cmd_list[command.syntax] = command
 
 	def getAvailableToken(self,values:list[str],buffer:str):
@@ -359,4 +359,5 @@ class CmdHandler:
 				case _ :
 					error_message = "Unexpected error"
 			self.warn(error_message + f" for command '{command_name}'")
-			print(command.usage)
+			if command.usage != "":
+				info(command.usage)
